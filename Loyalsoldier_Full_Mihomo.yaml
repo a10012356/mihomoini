@@ -1,0 +1,231 @@
+# Loyalsoldier 完整版 Mihomo / Clash Meta 配置模板
+# 使用方法：
+# 1. 把下面 proxy-providers 里的 url 换成你自己的订阅链接
+# 2. 保存为 .yaml 文件，直接导入 Mihomo / Clash Verge / Clash Meta 等客户端
+# 3. 支持自动更新规则（每天）
+
+mixed-port: 7890
+allow-lan: true
+mode: rule
+log-level: info
+external-controller: 127.0.0.1:9090
+unified-delay: true
+tcp-concurrent: true
+find-process-mode: strict
+global-client-fingerprint: chrome
+
+# DNS 配置（防泄漏推荐）
+dns:
+  enable: true
+  listen: 0.0.0.0:1053
+  ipv6: false
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16
+  fake-ip-filter:
+    - "*.lan"
+    - "*.local"
+    - "localhost.ptlogin2.qq.com"
+  default-nameserver:
+    - 223.5.5.5
+    - 119.29.29.29
+  nameserver:
+    - https://doh.pub/dns-query
+    - https://dns.alidns.com/dns-query
+  proxy-server-nameserver:
+    - https://doh.pub/dns-query
+    - https://dns.alidns.com/dns-query
+  nameserver-policy:
+    "geosite:cn,private":
+      - https://doh.pub/dns-query
+      - https://dns.alidns.com/dns-query
+
+# ==================== 订阅（请修改这里） ====================
+proxy-providers:
+  MySub:
+    type: http
+    url: "这里填你的订阅链接"
+    interval: 86400
+    path: ./proxy_provider/MySub.yaml
+    health-check:
+      enable: true
+      interval: 600
+      url: http://www.gstatic.com/generate_204
+
+# ==================== 策略组 ====================
+proxy-groups:
+  - name: 🚀 节点选择
+    type: select
+    proxies:
+      - ♻️ 自动选择
+      - ⚡ 故障转移
+      - ⚖️ 负载均衡
+      - DIRECT
+    use:
+      - MySub
+
+  - name: ♻️ 自动选择
+    type: url-test
+    url: http://www.gstatic.com/generate_204
+    interval: 300
+    tolerance: 50
+    use:
+      - MySub
+
+  - name: ⚡ 故障转移
+    type: fallback
+    url: http://www.gstatic.com/generate_204
+    interval: 300
+    use:
+      - MySub
+
+  - name: ⚖️ 负载均衡
+    type: load-balance
+    url: http://www.gstatic.com/generate_204
+    interval: 300
+    use:
+      - MySub
+
+  - name: 🎯 全球直连
+    type: select
+    proxies:
+      - DIRECT
+      - 🚀 节点选择
+
+  - name: 🛑 广告拦截
+    type: select
+    proxies:
+      - REJECT
+      - DIRECT
+
+  - name: 🐟 漏网之鱼
+    type: select
+    proxies:
+      - 🚀 节点选择
+      - ♻️ 自动选择
+      - ⚡ 故障转移
+      - ⚖️ 负载均衡
+      - DIRECT
+
+# ==================== 规则集（Loyalsoldier 完整版） ====================
+rule-providers:
+  reject:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/reject.txt"
+    path: ./ruleset/reject.yaml
+    interval: 86400
+
+  private:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/private.txt"
+    path: ./ruleset/private.yaml
+    interval: 86400
+
+  apple:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/apple.txt"
+    path: ./ruleset/apple.yaml
+    interval: 86400
+
+  icloud:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/icloud.txt"
+    path: ./ruleset/icloud.yaml
+    interval: 86400
+
+  applications:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/applications.txt"
+    path: ./ruleset/applications.yaml
+    interval: 86400
+
+  direct:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/direct.txt"
+    path: ./ruleset/direct.yaml
+    interval: 86400
+
+  google:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/google.txt"
+    path: ./ruleset/google.yaml
+    interval: 86400
+
+  proxy:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/proxy.txt"
+    path: ./ruleset/proxy.yaml
+    interval: 86400
+
+  gfw:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/gfw.txt"
+    path: ./ruleset/gfw.yaml
+    interval: 86400
+
+  telegramcidr:
+    type: http
+    behavior: ipcidr
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/telegramcidr.txt"
+    path: ./ruleset/telegramcidr.yaml
+    interval: 86400
+
+  cncidr:
+    type: http
+    behavior: ipcidr
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/cncidr.txt"
+    path: ./ruleset/cncidr.yaml
+    interval: 86400
+
+  lancidr:
+    type: http
+    behavior: ipcidr
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/lancidr.txt"
+    path: ./ruleset/lancidr.yaml
+    interval: 86400
+
+# ==================== 规则 ====================
+rules:
+  # 广告拦截（完整版）
+  - RULE-SET,reject,🛑 广告拦截
+
+  # 局域网
+  - RULE-SET,private,🎯 全球直连
+  - RULE-SET,lancidr,🎯 全球直连
+
+  # 苹果 / iCloud 直连
+  - RULE-SET,apple,🎯 全球直连
+  - RULE-SET,icloud,🎯 全球直连
+
+  # 常见软件直连
+  - RULE-SET,applications,🎯 全球直连
+
+  # 国内域名直连
+  - RULE-SET,direct,🎯 全球直连
+
+  # 谷歌走代理
+  - RULE-SET,google,🚀 节点选择
+
+  # Telegram
+  - RULE-SET,telegramcidr,🚀 节点选择,no-resolve
+
+  # 代理列表
+  - RULE-SET,gfw,🚀 节点选择
+  - RULE-SET,proxy,🚀 节点选择
+
+  # 中国大陆 IP 直连
+  - RULE-SET,cncidr,🎯 全球直连,no-resolve
+
+  # GEOIP 兜底
+  - GEOIP,CN,🎯 全球直连
+
+  # 最终规则
+  - MATCH,🐟 漏网之鱼
